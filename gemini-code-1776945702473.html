@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EngageX | AI Feedback Tool</title>
+    <style>
+        :root { --primary: #2563eb; --bg: #f1f5f9; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); display: flex; justify-content: center; padding: 20px; color: #1e293b; }
+        .card { background: white; padding: 30px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); width: 100%; max-width: 500px; }
+        h2 { margin-bottom: 5px; color: #0f172a; }
+        .subtitle { color: #64748b; font-size: 14px; margin-bottom: 25px; }
+        label { display: block; margin-top: 15px; font-weight: 600; font-size: 12px; color: #475569; text-transform: uppercase; }
+        input, textarea { width: 100%; padding: 12px; margin-top: 6px; border: 1px solid #cbd5e1; border-radius: 8px; box-sizing: border-box; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        button { width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 8px; margin-top: 25px; cursor: pointer; font-weight: bold; font-size: 16px; }
+        button:disabled { background: #94a3b8; cursor: wait; }
+        #output-box { margin-top: 25px; padding: 20px; background: #f8fafc; border: 1px solid #e2e8f0; border-left: 4px solid var(--primary); border-radius: 8px; display: none; }
+        .word-badge { font-size: 11px; background: #e2e8f0; padding: 2px 6px; border-radius: 4px; float: right; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>Trainer AI Feedback</h2>
+    <p class="subtitle">Enter scores to generate polished, corporate-ready feedback.</p>
+    
+    <label>Gemini API Key</label>
+    <input type="password" id="apiKey" placeholder="Enter your key here...">
+
+    <label>Participant Name</label>
+    <input type="text" id="name" placeholder="Alex Johnson">
+
+    <div class="grid">
+        <div><label>Attitude (1-5)</label><input type="number" id="att" value="5" min="1" max="5"></div>
+        <div><label>Punctuality (1-5)</label><input type="number" id="punc" value="5" min="1" max="5"></div>
+        <div><label>Engagement (1-5)</label><input type="number" id="eng" value="5" min="1" max="5"></div>
+        <div><label>Learning (1-5)</label><input type="number" id="learn" value="5" min="1" max="5"></div>
+    </div>
+
+    <label>Notable Observations</label>
+    <textarea id="notes" rows="3" placeholder="e.g. Led the brainstorming session effectively."></textarea>
+
+    <button id="genBtn" onclick="generate()">Generate AI Feedback</button>
+
+    <div id="output-box">
+        <span class="word-badge" id="count">0 words</span>
+        <div id="resultText"></div>
+        <button onclick="copy()" style="background:#64748b; margin-top:15px; padding:8px; font-size:12px;">Copy Text</button>
+    </div>
+</div>
+
+<script>
+async function generate() {
+    const key = document.getElementById('apiKey').value.trim();
+    const btn = document.getElementById('genBtn');
+    if(!key) return alert("Please enter your API Key.");
+
+    btn.disabled = true;
+    btn.innerText = "Analyzing & Polishing...";
+
+    const fields = {
+        name: document.getElementById('name').value || "The participant",
+        att: document.getElementById('att').value,
+        punc: document.getElementById('punc').value,
+        eng: document.getElementById('eng').value,
+        learn: document.getElementById('learn').value,
+        notes: document.getElementById('notes').value
+    };
+
+    const prompt = `Write a polished, professional, and corporate-friendly feedback summary for ${fields.name}. 
+    Scores: Attitude ${fields.att}/5, Punctuality ${fields.punc}/5, Engagement ${fields.eng}/5, Learning ${fields.learn}/5. 
+    Observation: ${fields.notes}.
+    STRICT RULES: 
+    1. Maximum 50 words.
+    2. Affirmative and constructive tone. 
+    3. Do not mention specific scores like '4/5', instead use descriptive words like 'excellent' or 'consistent'.`;
+
+    // Using a public CORS proxy to allow local file access
+    const proxy = "https://corsproxy.io/?";
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`;
+
+    try {
+        const response = await fetch(proxy + encodeURIComponent(url), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+        });
+
+        const data = await response.json();
+        
+        if (data.error) throw new Error(data.error.message);
+
+        const feedback = data.candidates[0].content.parts[0].text.trim();
+        const wordCount = feedback.split(/\s+/).length;
+
+        document.getElementById('resultText').innerText = feedback;
+        document.getElementById('count').innerText = `${wordCount} words`;
+        document.getElementById('output-box').style.display = 'block';
+
+    } catch (err) {
+        alert("Error: " + err.message + "\n\nTip: Ensure your API key is valid and try again.");
+        console.error(err);
+    } finally {
+        btn.disabled = false;
+        btn.innerText = "Generate AI Feedback";
+    }
+}
+
+function copy() {
+    const text = document.getElementById('resultText').innerText;
+    navigator.clipboard.writeText(text);
+    alert("Feedback copied to clipboard!");
+}
+</script>
+
+</body>
+</html>
