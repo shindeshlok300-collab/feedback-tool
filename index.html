@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Trainee Feedback Tool</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --navy:   #1A3A5C;
+    --blue:   #185FA5;
+    --blue2:  #D6E8F7;
+    --blue3:  #EBF4FC;
+    --green:  #1D9E75;
+    --green2: #E1F5EE;
+    --amber:  #BA7517;
+    --amber2: #FAEEDA;
+    --red:    #A32D2D;
+    --red2:   #FCEBEB;
+    --grey1:  #F7F8FA;
+    --grey2:  #ECECEC;
+    --grey3:  #888;
+    --text:   #1A1A2E;
+    --text2:  #555;
+    --radius: 12px;
+    --shadow: 0 2px 16px rgba(24,95,165,0.08);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: #F0F4F9;
+    min-height: 100vh;
+    color: var(--text);
+  }
+
+  /* ── Top bar ── */
+  .topbar {
+    background: var(--navy);
+    padding: 0 2rem;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .topbar-brand {
+    font-family: 'DM Serif Display', serif;
+    font-size: 18px;
+    color: #fff;
+    letter-spacing: 0.02em;
+  }
+  .topbar-badge {
+    font-size: 11px;
+    background: rgba(255,255,255,0.12);
+    color: rgba(255,255,255,0.75);
+    padding: 4px 10px;
+    border-radius: 20px;
+    letter-spacing: 0.05em;
+  }
+
+  /* ── Layout ── */
+  .page {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 2.5rem 1.5rem 4rem;
+  }
+
+  .page-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 32px;
+    font-weight: 400;
+    color: var(--navy);
+    margin-bottom: 6px;
+  }
+  .page-sub {
+    font-size: 14px;
+    color: var(--text2);
+    margin-bottom: 2rem;
+  }
+
+  /* ── Cards ── */
+  .card {
+    background: #fff;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 1.5rem;
+    margin-bottom: 1.25rem;
+  }
+  .card-title {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--blue);
+    margin-bottom: 1rem;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--blue2);
+  }
+
+  /* ── API key section ── */
+  .api-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  .api-row input {
+    flex: 1;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    padding: 9px 13px;
+    border: 1px solid var(--grey2);
+    border-radius: 8px;
+    background: var(--grey1);
+    color: var(--text);
+    letter-spacing: 0.04em;
+  }
+  .api-row input:focus { outline: none; border-color: var(--blue); background: #fff; }
+  .api-toggle {
+    font-size: 12px;
+    color: var(--blue);
+    cursor: pointer;
+    white-space: nowrap;
+    text-decoration: underline;
+    background: none;
+    border: none;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .api-hint {
+    font-size: 12px;
+    color: var(--grey3);
+    margin-top: 6px;
+  }
+  .api-hint a { color: var(--blue); }
+
+  /* ── Form fields ── */
+  .field-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  @media(max-width:540px){ .field-grid { grid-template-columns: 1fr; } }
+
+  .field label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text2);
+    margin-bottom: 5px;
+  }
+  .field input, .field textarea {
+    width: 100%;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    padding: 9px 12px;
+    border: 1px solid var(--grey2);
+    border-radius: 8px;
+    background: var(--grey1);
+    color: var(--text);
+    transition: border-color .15s, background .15s;
+  }
+  .field input:focus, .field textarea:focus {
+    outline: none;
+    border-color: var(--blue);
+    background: #fff;
+  }
+  .field textarea { resize: vertical; min-height: 80px; line-height: 1.6; }
+
+  /* ── Rating cards ── */
+  .rating-card {
+    border: 1px solid var(--blue2);
+    border-radius: 10px;
+    padding: 1rem 1.1rem;
+    margin-bottom: 10px;
+    background: var(--blue3);
+    transition: border-color .15s;
+  }
+  .rating-card:hover { border-color: #a8caea; }
+  .rating-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .rating-meta { flex: 1; }
+  .rating-name { font-size: 14px; font-weight: 500; color: var(--navy); }
+  .rating-desc { font-size: 12px; color: var(--grey3); margin-top: 2px; }
+  .stars-col { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+  .stars { display: flex; gap: 5px; }
+  .star {
+    width: 32px; height: 32px;
+    border-radius: 7px;
+    border: 1px solid #b8d4ee;
+    background: #fff;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 500;
+    color: var(--blue);
+    transition: background .12s, border-color .12s, transform .1s;
+    user-select: none;
+  }
+  .star:hover { background: var(--blue2); border-color: var(--blue); transform: scale(1.08); }
+  .star.on { background: var(--blue); border-color: var(--blue); color: #fff; }
+  .score-label { font-size: 11px; color: var(--grey3); min-height: 16px; }
+  .progress { height: 3px; background: #dce8f5; border-radius: 3px; margin-top: 10px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 3px; background: var(--blue); transition: width .25s; }
+
+  /* ── Generate button ── */
+  .gen-btn {
+    width: 100%;
+    padding: 14px;
+    background: var(--navy);
+    color: #fff;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    border: none;
+    border-radius: var(--radius);
+    cursor: pointer;
+    margin-top: .5rem;
+    letter-spacing: 0.02em;
+    transition: background .15s, opacity .15s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .gen-btn:hover { background: var(--blue); }
+  .gen-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+  /* ── Output ── */
+  .output-card {
+    background: var(--green2);
+    border: 1px solid #9FE1CB;
+    border-radius: var(--radius);
+    padding: 1.4rem 1.5rem;
+    margin-top: 1.25rem;
+    animation: fadeUp .35s ease;
+  }
+  @keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+  .output-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .output-label {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--green);
+  }
+  .word-count {
+    font-size: 11px;
+    color: var(--green);
+    background: rgba(29,158,117,0.12);
+    padding: 2px 8px;
+    border-radius: 20px;
+  }
+  .output-text {
+    font-size: 14px;
+    line-height: 1.8;
+    color: #0F4A35;
+  }
+  .output-actions { display: flex; gap: 8px; margin-top: 14px; }
+  .copy-btn {
+    padding: 8px 16px;
+    font-size: 13px;
+    border-radius: 8px;
+    border: 1px solid #5DCAA5;
+    background: #fff;
+    color: var(--green);
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    transition: background .12s;
+  }
+  .copy-btn:hover { background: #fff; box-shadow: 0 0 0 2px #5DCAA5; }
+  .reset-btn {
+    padding: 8px 16px;
+    font-size: 13px;
+    border-radius: 8px;
+    border: 1px solid #9FE1CB;
+    background: transparent;
+    color: var(--grey3);
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  /* ── Error ── */
+  .error-msg {
+    font-size: 13px;
+    color: var(--red);
+    background: var(--red2);
+    border: 1px solid #F09595;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-top: 10px;
+    display: none;
+  }
+
+  /* ── Spinner ── */
+  .spinner {
+    width: 18px; height: 18px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Footer ── */
+  .footer {
+    text-align: center;
+    font-size: 12px;
+    color: var(--grey3);
+    margin-top: 3rem;
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="topbar-brand">Feedback Tool</span>
+  <span class="topbar-badge">INTERNAL USE ONLY</span>
+</div>
+
+<div class="page">
+
+  <h1 class="page-title">Trainee Feedback Generator</h1>
+  <p class="page-sub">Rate each dimension, add observations, and generate a concise 50-word professional assessment.</p>
+
+  <!-- API Key -->
+  <div class="card">
+    <div class="card-title">OpenAI API Key</div>
+    <div class="api-row">
+      <input type="password" id="api-key" placeholder="sk-..." autocomplete="off" />
+      <button class="api-toggle" onclick="toggleKey()">Show</button>
+    </div>
+    <p class="api-hint">Your key is never stored or sent anywhere except directly to OpenAI. Get one at <a href="https://platform.openai.com/api-keys" target="_blank">platform.openai.com/api-keys</a></p>
+  </div>
+
+  <!-- Trainee Info -->
+  <div class="card">
+    <div class="card-title">Trainee Information</div>
+    <div class="field-grid">
+      <div class="field">
+        <label>Trainee Name</label>
+        <input type="text" id="t-name" placeholder="e.g. Priya Sharma" />
+      </div>
+      <div class="field">
+        <label>Batch / Session</label>
+        <input type="text" id="t-batch" placeholder="e.g. Cohort 3 — April 2026" />
+      </div>
+      <div class="field">
+        <label>Trainer Name</label>
+        <input type="text" id="t-trainer" placeholder="e.g. Rahul Mehta" />
+      </div>
+      <div class="field">
+        <label>Date</label>
+        <input type="date" id="t-date" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Ratings -->
+  <div class="card">
+    <div class="card-title">Performance Ratings &nbsp;·&nbsp; <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:#888">1 = Lowest &nbsp; 5 = Highest</span></div>
+    <div id="rating-cards"></div>
+  </div>
+
+  <!-- Observations -->
+  <div class="card">
+    <div class="card-title">Notable Observations <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:#888">(optional)</span></div>
+    <div class="field">
+      <textarea id="observations" placeholder="Any specific incidents, patterns, standout moments, or areas the trainer wants highlighted..."></textarea>
+    </div>
+  </div>
+
+  <!-- Error -->
+  <div class="error-msg" id="err-msg"></div>
+
+  <!-- Button -->
+  <button class="gen-btn" id="gen-btn" onclick="generate()">
+    Generate Feedback
+  </button>
+
+  <!-- Output -->
+  <div id="output-area" style="display:none">
+    <div class="output-card">
+      <div class="output-header">
+        <span class="output-label">Generated Feedback</span>
+        <span class="word-count" id="word-count"></span>
+      </div>
+      <div class="output-text" id="output-text"></div>
+      <div class="output-actions">
+        <button class="copy-btn" onclick="copyText()">Copy</button>
+        <button class="reset-btn" onclick="resetForm()">Start over</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">Trainee Feedback Tool &nbsp;·&nbsp; For internal training use only &nbsp;·&nbsp; Powered by OpenAI</div>
+</div>
+
+<script>
+const dims = [
+  { id:"attitude",    name:"Attitude & Behaviour",    desc:"Professionalism, positivity, and conduct" },
+  { id:"punctuality", name:"Punctuality",             desc:"Attendance and timely submission of work" },
+  { id:"engagement",  name:"Engagement & Interaction",desc:"Participation and peer collaboration" },
+  { id:"learning",    name:"Learning Capability",     desc:"Understanding, retention, and application" },
+];
+const scoreLabels = ["","Needs Improvement","Below Expectations","Meets Expectations","Exceeds Expectations","Outstanding"];
+const ratings = {};
+dims.forEach(d => ratings[d.id] = 0);
+
+// Set today's date
+document.getElementById("t-date").value = new Date().toISOString().split("T")[0];
+
+// Build rating cards
+function buildCards() {
+  const container = document.getElementById("rating-cards");
+  dims.forEach(dim => {
+    const div = document.createElement("div");
+    div.className = "rating-card";
+    div.innerHTML = `
+      <div class="rating-top">
+        <div class="rating-meta">
+          <div class="rating-name">${dim.name}</div>
+          <div class="rating-desc">${dim.desc}</div>
+        </div>
+        <div class="stars-col">
+          <div class="stars">
+            ${[1,2,3,4,5].map(n =>
+              `<div class="star" id="star-${dim.id}-${n}" onclick="setRating('${dim.id}',${n})">${n}</div>`
+            ).join("")}
+          </div>
+          <div class="score-label" id="lbl-${dim.id}">Not rated</div>
+        </div>
+      </div>
+      <div class="progress"><div class="progress-fill" id="bar-${dim.id}" style="width:0%"></div></div>
+    `;
+    container.appendChild(div);
+  });
+}
+
+function setRating(id, val) {
+  ratings[id] = val;
+  [1,2,3,4,5].forEach(n =>
+    document.getElementById(`star-${id}-${n}`).classList.toggle("on", n <= val)
+  );
+  document.getElementById(`lbl-${id}`).textContent = scoreLabels[val];
+  document.getElementById(`bar-${id}`).style.width = (val / 5 * 100) + "%";
+}
+
+function toggleKey() {
+  const inp = document.getElementById("api-key");
+  const btn = document.querySelector(".api-toggle");
+  if (inp.type === "password") { inp.type = "text"; btn.textContent = "Hide"; }
+  else { inp.type = "password"; btn.textContent = "Show"; }
+}
+
+function showError(msg) {
+  const el = document.getElementById("err-msg");
+  el.textContent = msg;
+  el.style.display = "block";
+}
+function clearError() {
+  document.getElementById("err-msg").style.display = "none";
+}
+
+async function generate() {
+  clearError();
+
+  const apiKey = document.getElementById("api-key").value.trim();
+  const name   = document.getElementById("t-name").value.trim() || "the trainee";
+  const batch  = document.getElementById("t-batch").value.trim();
+  const trainer= document.getElementById("t-trainer").value.trim();
+  const date   = document.getElementById("t-date").value;
+  const obs    = document.getElementById("observations").value.trim();
+
+  if (!apiKey) { showError("Please enter your OpenAI API key to generate feedback."); return; }
+  const unrated = dims.filter(d => ratings[d.id] === 0);
+  if (unrated.length) { showError(`Please rate all dimensions before generating. Missing: ${unrated.map(d=>d.name).join(", ")}.`); return; }
+
+  const btn = document.getElementById("gen-btn");
+  btn.disabled = true;
+  btn.innerHTML = `<div class="spinner"></div> Generating…`;
+  document.getElementById("output-area").style.display = "none";
+
+  const scoresSummary = dims.map(d =>
+    `${d.name}: ${ratings[d.id]}/5 (${scoreLabels[ratings[d.id]]})`
+  ).join(", ");
+
+  const prompt =
+    `Write exactly 50 words of professional, affirmative, and constructive performance feedback for ${name}` +
+    (batch ? ` from ${batch}` : "") + `. ` +
+    `Scores out of 5: ${scoresSummary}. ` +
+    (obs ? `Trainer observations: ${obs}. ` : "") +
+    `Write in continuous prose — no bullet points, no lists. ` +
+    `Begin with a positive acknowledgment, highlight strengths, diplomatically address growth areas, and close with an encouraging forward-looking statement. ` +
+    `Strictly 50 words — count carefully.`;
+
+  try {
+    const res = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + apiKey
+      },
+      body: JSON.stringify({
+        model: "gpt-4o",
+        max_tokens: 200,
+        temperature: 0.7,
+        messages: [
+          {
+            role: "system",
+            content: "You are a professional corporate L&D trainer writing concise, warm, and constructive trainee performance feedback. Always respond with exactly the number of words requested."
+          },
+          { role: "user", content: prompt }
+        ]
+      })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      const msg = data?.error?.message || "Unknown error from OpenAI.";
+      showError("OpenAI Error: " + msg);
+      return;
+    }
+
+    const text = data.choices?.[0]?.message?.content?.trim() || "";
+    const wordCount = text.split(/\s+/).filter(Boolean).length;
+
+    document.getElementById("output-text").textContent = text;
+    document.getElementById("word-count").textContent = wordCount + " words";
+    document.getElementById("output-area").style.display = "block";
+    document.getElementById("output-area").scrollIntoView({ behavior: "smooth", block: "start" });
+
+  } catch (e) {
+    showError("Network error: " + e.message + ". Please check your internet connection.");
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = "Regenerate Feedback";
+  }
+}
+
+function copyText() {
+  const text = document.getElementById("output-text").textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.querySelector(".copy-btn");
+    btn.textContent = "Copied!";
+    setTimeout(() => btn.textContent = "Copy", 1800);
+  });
+}
+
+function resetForm() {
+  document.getElementById("t-name").value = "";
+  document.getElementById("t-batch").value = "";
+  document.getElementById("t-trainer").value = "";
+  document.getElementById("t-date").value = new Date().toISOString().split("T")[0];
+  document.getElementById("observations").value = "";
+  dims.forEach(d => {
+    ratings[d.id] = 0;
+    [1,2,3,4,5].forEach(n => document.getElementById(`star-${d.id}-${n}`).classList.remove("on"));
+    document.getElementById(`lbl-${d.id}`).textContent = "Not rated";
+    document.getElementById(`bar-${d.id}`).style.width = "0%";
+  });
+  document.getElementById("output-area").style.display = "none";
+  document.getElementById("err-msg").style.display = "none";
+  document.getElementById("gen-btn").textContent = "Generate Feedback";
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+buildCards();
+</script>
+</body>
+</html>
